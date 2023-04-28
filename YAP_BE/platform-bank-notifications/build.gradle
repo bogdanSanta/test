@@ -1,0 +1,108 @@
+plugins {
+    id 'org.springframework.boot' version '3.0.5'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'java'
+    id 'checkstyle'
+    id "jacoco"
+    id "org.sonarqube" version "4.0.0.2929"
+    id "io.freefair.lombok" version "8.0.1"
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springCloudVersion = "2022.0.1"
+    platformCommonVersion = '1.0.1'
+    platformSecurityVersion = '1.0.2'
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = false
+}
+
+subprojects {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
+    apply plugin: 'org.sonarqube'
+    apply plugin: 'io.freefair.lombok'
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+
+    dependencies {
+        implementation "com.yap:platform-common:${platformCommonVersion}"
+        implementation "com.yap:platform-security:${platformSecurityVersion}"
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.security:spring-security-test'
+
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+        annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+        annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+        annotationProcessor 'jakarta.servlet:jakarta.servlet-api'
+
+        testImplementation 'org.springframework.security:spring-security-test'
+    }
+
+    bootJar {
+        enabled = true
+    }
+
+    jar {
+        enabled = false
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    checkstyle {
+        configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    }
+    checkstyleMain {
+        source = 'src/main/java'
+    }
+    checkstyleTest {
+        source = 'src/test/java'
+    }
+
+
+    jacocoTestReport {
+        reports {
+            xml {
+                enabled true
+            }
+        }
+    }
+
+    sonarqube {
+        properties {
+            property "sonar.sources", "src/main"
+            property "sonar.tests", "src/test"
+        }
+    }
+
+    wrapper {
+        gradleVersion = '8.0.2'
+    }
+}
